@@ -9,17 +9,17 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 add_compile_options(-Wall -Wextra -Wpedantic)
 
 
-find_package(glfw3 REQUIRED)
-
-if (GLFW3_CXX_FOUND)
-	add_compile_options(${GLFW3_CXX_FLAGS})
-	link_libraries(${GLFW3_CXX_LIBRARIES})
-endif()
+find_package(glfw3 3.3 REQUIRED)
+find_package(OpenGL REQUIRED)
 
 
 set(EXE_NAME "demo")
 set(INCLUDE_DIR "${CMAKE_SOURCE_DIR}/include")
 file(GLOB SRC "${CMAKE_SOURCE_DIR}/src/*.cpp")
 
-add_executable(${EXE_NAME} ${SRC})
-include_directories(${EXE_NAME} PRIVATE ${INCLUDE_DIR})
+add_executable(${EXE_NAME}
+	src/main.cpp
+)
+target_include_directories(${EXE_NAME} PRIVATE ${INCLUDE_DIR})
+target_link_libraries(${EXE_NAME} PRIVATE glfw)
+target_link_libraries(${EXE_NAME} PRIVATE OpenGL::GL)
