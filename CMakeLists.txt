@@ -21,6 +21,7 @@ add_executable(${EXE_NAME}
 	src/main.cpp
 	src/window.cpp
 	src/image.cpp
+	src/shader.cpp
 )
 target_include_directories(${EXE_NAME} PRIVATE ${INCLUDE_DIR})
 target_link_libraries(${EXE_NAME} PRIVATE glfw)
