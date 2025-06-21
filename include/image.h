@@ -15,6 +15,7 @@ class Image {
 
 		int get_width() const;
 		int get_height() const;
+		unsigned char const* get_data() const;
 
 	private:
 		int m_width, m_height;

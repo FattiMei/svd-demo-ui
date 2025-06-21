@@ -27,6 +27,11 @@ int Image::get_height() const {
 }
 
 
+unsigned char const* Image::get_data() const {
+	return m_data.data();
+}
+
+
 Image create_random_image(const int width, const int height) {
 	std::vector<unsigned char> data(width * height);
 

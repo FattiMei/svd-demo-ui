@@ -22,7 +22,9 @@ add_executable(${EXE_NAME}
 	src/window.cpp
 	src/image.cpp
 	src/shader.cpp
+	src/texture.cpp
 )
 target_include_directories(${EXE_NAME} PRIVATE ${INCLUDE_DIR})
+target_compile_definitions(${EXE_NAME} PUBLIC USE_OPENGL_ES2)
 target_link_libraries(${EXE_NAME} PRIVATE glfw)
 target_link_libraries(${EXE_NAME} PRIVATE OpenGL::GL)
