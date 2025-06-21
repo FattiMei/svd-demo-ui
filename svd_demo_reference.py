@@ -30,6 +30,7 @@ if __name__ == '__main__':
 
     print(f'[INFO]: loading {name}')
     image = Image.open(name)
+    name = name.split('/')[-1]
     grayscale = image.convert(mode='L')
     matrix = np.array(grayscale, dtype=np.float32)
 
@@ -89,7 +90,7 @@ if __name__ == '__main__':
         k = val
 
         ax[1].set_title(f'{k} singular values')
-        compressed.set_data(truncate_to_k_singular_values_optimized(merged, vh, k))
+        compressed.set_data(truncate_to_k_singular_values_optimized(merged, Vh, k))
 
         point[0].set_xdata([k])
         point[0].set_ydata([explained_variance[k]])
