@@ -1,10 +1,23 @@
 #include "image.h"
+#include <format>
 #include <cstdlib>
+#include <iostream>
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 
-// TODO: add stb_image image loading and processing
-Image::Image(const std::string& /* filename */) {
+Image::Image(const std::string& filename) {
+	int n_channels;
+	unsigned char *data = stbi_load(filename.c_str(), &m_width, &m_height, &n_channels, 1);
 
+	if (data == NULL) {
+		std::cerr << std::format("[ERROR]: could not load {}\n", filename);
+	}
+	else {
+		m_data.reserve(m_width * m_height);
+		m_data.insert(m_data.begin(), data, data + m_width * m_height);
+	}
 }
 
 

@@ -26,8 +26,8 @@ int main(int argc, char* argv[]) {
 	window_set_key_callback(exit_on_escape_callback);
 
 	texture_init();
-	Image I = create_random_image(20, 20);
-	const auto tex = texture_create_from_image(I);
+	Image user_image(image_filename);
+	const auto tex = texture_create_from_image(user_image);
 
 	std::cerr << std::format("[INFO]: OpenGL version `{}`", window_get_opengl_version()) << std::endl;
 

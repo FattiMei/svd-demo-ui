@@ -9,12 +9,12 @@ static GLint program;
 
 
 static const float vertices[] = {
+	-1.0f, +1.0f, 0.0f,
 	-1.0f, -1.0f, 0.0f,
-	-1.0f,  1.0f, 0.0f,
+	 1.0f, +1.0f, 0.0f,
+	-1.0f, -1.0f, 0.0f,
 	 1.0f, -1.0f, 0.0f,
-	-1.0f,  1.0f, 0.0f,
-	 1.0f,  1.0f, 0.0f,
-	 1.0f, -1.0f, 0.0f
+	 1.0f, +1.0f, 0.0f
 };
 
 
