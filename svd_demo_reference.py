@@ -1,9 +1,12 @@
 import sys
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
 from PIL import Image
 from time import perf_counter
 from matplotlib.widgets import Slider
+
+matplotlib.use("Qt5Agg")
 
 
 def truncate_to_k_singular_values(U, Sigma, Vh, k):
@@ -24,7 +27,7 @@ if __name__ == '__main__':
 
     if len(sys.argv) == 1 or is_interactive:
         print('[INFO]: no image provided, loading default image')
-        name = 'einstein.jpg'
+        name = 'resources/einstein.jpg'
     else:
         name = sys.argv[1]
 
