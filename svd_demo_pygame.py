@@ -3,16 +3,8 @@ import numpy as np
 from PIL import Image
 from time import perf_counter
 
+import common
 import pygame
-import utils
-
-
-def truncate_to_k_singular_values(U, Sigma, Vh, k):
-    return (U[:,:k] * Sigma[:k]) @ Vh[:k, :]
-
-
-def truncate_to_k_singular_values_optimized(merged, Vh, k):
-    return merged[:,:k] @ Vh[:k, :]
 
 
 def make_grayscale_surface(arr: np.ndarray) -> pygame.surface.Surface:
@@ -72,31 +64,17 @@ def generate_layout(window_shape: tuple[int, int], image_shape: tuple[int, int],
 
 
 if __name__ == '__main__':
-    if utils.is_interactive():
-        sys.argv = ['']
-
-    args = utils.parse_args(version='matplotlib')
+    args = common.parse_args(version='matplotlib')
 
     filename = 'resources/cameraman.jpg' if args.image is None else args.image
-    name, matrix = utils.load_image_from_filename(filename, precision=args.precision)
+    name, matrix = common.load_image_from_filename(filename, precision=args.precision)
 
-    print('[INFO]: performing SVD decomposition')
-    start_time = perf_counter()
-    U, Sigma, Vh = np.linalg.svd(matrix, full_matrices=False)
-    end_time = perf_counter()
-    print(f'[INFO]: computation time: {end_time - start_time:.2f}')
+    U, Sigma, Vh, explained_variance = common.compute_svd_quantities(matrix)
 
     print('[INFO]: converting image to pygame Surface')
     original_image_texture = make_grayscale_surface(matrix)
 
-    # siccome viene spesso ripetuto il calcolo di U * Sigma,
-    # decido di precalcolarlo una volta per tutte
-    merged = U * Sigma
-    compute_compressed_matrix = lambda k: np.clip(truncate_to_k_singular_values_optimized(merged, Vh, k), 0, 255)
-
-    singular_values_squared = Sigma**2
-    explained_variance = np.cumsum(singular_values_squared)
-    explained_variance /= explained_variance[-1]
+    compute_compressed_matrix = lambda k: np.clip(common.truncate_to_k_singular_values(U, Sigma, Vh, k), 0, 255)
 
     k = 1
     min_k = 1

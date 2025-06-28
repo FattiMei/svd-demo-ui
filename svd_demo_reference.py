@@ -5,43 +5,18 @@ import matplotlib.pyplot as plt
 from time import perf_counter
 from matplotlib.widgets import Slider
 
-import utils
-
-
-def truncate_to_k_singular_values(U, Sigma, Vh, k):
-    return (U[:,:k] * Sigma[:k]) @ Vh[:k, :]
-
-
-def truncate_to_k_singular_values_optimized(merged, Vh, k):
-    return merged[:,:k] @ Vh[:k, :]
-
+import common
 
 # TODO: add memory footprint
 # TODO: add pooling for improving computation times
 
-
 if __name__ == '__main__':
-    if utils.is_interactive():
-        sys.argv = ['']
-
-    args = utils.parse_args(version='matplotlib')
+    args = common.parse_args(version='matplotlib')
 
     filename = 'resources/cameraman.jpg' if args.image is None else args.image
-    name, matrix = utils.load_image_from_filename(filename, precision=args.precision)
+    name, matrix = common.load_image_from_filename(filename, precision=args.precision)
 
-    print('[INFO]: performing SVD decomposition')
-    start_time = perf_counter()
-    U, Sigma, Vh = np.linalg.svd(matrix, full_matrices=False)
-    end_time = perf_counter()
-    print(f'[INFO]: computation time: {end_time - start_time:.2f}')
-
-    # siccome viene spesso ripetuto il calcolo di U * Sigma,
-    # decido di precalcolarlo una volta per tutte
-    merged = U * Sigma
-
-    singular_values_squared = Sigma**2
-    explained_variance = np.cumsum(singular_values_squared)
-    explained_variance /= explained_variance[-1]
+    U, Sigma, Vh, explained_variance = common.compute_svd_quantities(matrix)
 
     k = 3
 
@@ -62,7 +37,7 @@ if __name__ == '__main__':
     ax[1].set_title(f'{k} singular values')
     ax[1].set_axis_off()
     compressed = ax[1].imshow(
-        truncate_to_k_singular_values_optimized(merged, Vh, k),
+        common.truncate_to_k_singular_values(U, Sigma, Vh, k),
         cmap='gray'
     )
 
@@ -85,7 +60,7 @@ if __name__ == '__main__':
         k = val
 
         ax[1].set_title(f'{k} singular values')
-        compressed.set_data(truncate_to_k_singular_values_optimized(merged, Vh, k))
+        compressed.set_data(common.truncate_to_k_singular_values(U, Sigma, Vh, k))
 
         point[0].set_xdata([k])
         point[0].set_ydata([explained_variance[k]])
