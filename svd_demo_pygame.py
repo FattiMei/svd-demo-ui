@@ -4,6 +4,7 @@ from PIL import Image
 from time import perf_counter
 
 import pygame
+import utils
 
 
 def truncate_to_k_singular_values(U, Sigma, Vh, k):
@@ -71,19 +72,7 @@ def generate_layout(window_shape: tuple[int, int], image_shape: tuple[int, int],
 
 
 if __name__ == '__main__':
-    is_interactive = sys.argv[0].split('/')[-1] == 'ipython'
-
-    if len(sys.argv) == 1 or is_interactive:
-        print('[INFO]: no image provided, loading default image')
-        name = 'resources/cameraman.jpg'
-    else:
-        name = sys.argv[1]
-
-    print(f'[INFO]: loading {name}')
-    image = Image.open(name)
-    name = name.split('/')[-1]
-    grayscale = image.convert(mode='L')
-    matrix = np.array(grayscale, dtype=np.float32)
+    name, matrix = utils.load_image_from_argv(sys.argv, default='resources/cameraman.jpg')
 
     print('[INFO]: performing SVD decomposition')
     start_time = perf_counter()
@@ -97,13 +86,15 @@ if __name__ == '__main__':
     # siccome viene spesso ripetuto il calcolo di U * Sigma,
     # decido di precalcolarlo una volta per tutte
     merged = U * Sigma
-    compute_compressed_matrix = lambda k: truncate_to_k_singular_values_optimized(merged, Vh, k)
+    compute_compressed_matrix = lambda k: np.clip(truncate_to_k_singular_values_optimized(merged, Vh, k), 0, 255)
 
     singular_values_squared = Sigma**2
     explained_variance = np.cumsum(singular_values_squared)
     explained_variance /= explained_variance[-1]
 
     k = 1
+    min_k = 1
+    max_k = 30
     compressed_image = compute_compressed_matrix(k)
     compressed_image_texture = make_grayscale_surface(compressed_image)
 
@@ -115,14 +106,40 @@ if __name__ == '__main__':
     clock  = pygame.time.Clock()
 
     running = True
+    state = k
+    mouse_state = 'up'
+    percent = (state - min_k) / (max_k - min_k)
 
     while running:
+        clicked = False
+
+        window_size = screen.get_size()
+        slider_rect, left_bbox_rect, right_bbox_rect = generate_layout(window_size, matrix.shape)
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
 
-        window_size = screen.get_size()
-        slider_rect, left_bbox_rect, right_bbox_rect = generate_layout(window_size, matrix.shape)
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if mouse_state == 'up':
+                    clicked = True
+
+                mouse_state = 'down'
+
+            elif event.type == pygame.MOUSEBUTTONUP:
+                mouse_state = 'up'
+
+        mouse_pos = pygame.mouse.get_pos()
+
+        if clicked:
+            if slider_rect.collidepoint(mouse_pos):
+                percent = (mouse_pos[0] - slider_rect.x) / slider_rect.w
+                new_state = min_k + int(percent * (max_k - min_k))
+
+                if new_state != state:
+                    state = new_state
+                    compressed_image = compute_compressed_matrix(state)
+                    compressed_image_texture = make_grayscale_surface(compressed_image)
 
         scaled_image_texture = pygame.transform.smoothscale(original_image_texture, (left_bbox_rect.w, left_bbox_rect.h))
         scaled_compressed_image_texture = pygame.transform.smoothscale(compressed_image_texture, (right_bbox_rect.w, right_bbox_rect.h))
@@ -130,7 +147,9 @@ if __name__ == '__main__':
         screen.fill((255, 255, 255))
         screen.blit(scaled_image_texture, (left_bbox_rect.x, left_bbox_rect.y))
         screen.blit(scaled_compressed_image_texture, (right_bbox_rect.x, right_bbox_rect.y))
-        pygame.draw.rect(screen, color=(0,255,255), rect=slider_rect)
+
+        pygame.draw.rect(screen, color=(0,100,100), rect=slider_rect)
+        pygame.draw.rect(screen, color=(0,200,200), rect=pygame.rect.Rect(slider_rect.x, slider_rect.y, percent*slider_rect.w, slider_rect.h))
 
         pygame.display.flip()
         clock.tick(60)

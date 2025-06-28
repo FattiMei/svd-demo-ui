@@ -2,11 +2,10 @@ import sys
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-from PIL import Image
 from time import perf_counter
 from matplotlib.widgets import Slider
 
-matplotlib.use("Qt5Agg")
+import utils
 
 
 def truncate_to_k_singular_values(U, Sigma, Vh, k):
@@ -17,25 +16,12 @@ def truncate_to_k_singular_values_optimized(merged, Vh, k):
     return merged[:,:k] @ Vh[:k, :]
 
 
-# TODO: can I tell if I'm running from ipython?
 # TODO: add memory footprint
 # TODO: add pooling for improving computation times
 
 
 if __name__ == '__main__':
-    is_interactive = sys.argv[0].split('/')[-1] == 'ipython'
-
-    if len(sys.argv) == 1 or is_interactive:
-        print('[INFO]: no image provided, loading default image')
-        name = 'resources/einstein.jpg'
-    else:
-        name = sys.argv[1]
-
-    print(f'[INFO]: loading {name}')
-    image = Image.open(name)
-    name = name.split('/')[-1]
-    grayscale = image.convert(mode='L')
-    matrix = np.array(grayscale, dtype=np.float32)
+    name, matrix = utils.load_image_from_argv(sys.argv, default='resources/cameraman.jpg')
 
     print('[INFO]: performing SVD decomposition')
     start_time = perf_counter()
