@@ -72,7 +72,13 @@ def generate_layout(window_shape: tuple[int, int], image_shape: tuple[int, int],
 
 
 if __name__ == '__main__':
-    name, matrix = utils.load_image_from_argv(sys.argv, default='resources/cameraman.jpg')
+    if utils.is_interactive():
+        sys.argv = ['']
+
+    args = utils.parse_args(version='matplotlib')
+
+    filename = 'resources/cameraman.jpg' if args.image is None else args.image
+    name, matrix = utils.load_image_from_filename(filename, precision=args.precision)
 
     print('[INFO]: performing SVD decomposition')
     start_time = perf_counter()
