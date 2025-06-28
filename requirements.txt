@@ -1,3 +1,6 @@
 numpy
 matplotlib
 PIL
+pygame
+vispy
+PyQt5
