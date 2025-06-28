@@ -1,9 +1,9 @@
 import sys
-import PIL
 import argparse
 import numpy as np
 
 from time import perf_counter
+from PIL import Image
 
 
 def is_interactive() -> bool:
@@ -40,7 +40,7 @@ def parse_args(version: str):
 def load_image_from_filename(filename: str, precision) -> tuple[str, np.ndarray]:
     print(f'[INFO]: loading {filename}')
     name = filename.split('/')[-1]
-    image = PIL.Image.open(filename)
+    image = Image.open(filename)
     grayscale = image.convert(mode='L')
 
     return name, np.array(grayscale, dtype=precision)
