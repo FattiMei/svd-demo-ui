@@ -69,7 +69,6 @@ The explained variance plot has some issues I couldn't solve.
 ![plot](./screenshots/vispy.png)
 
 ### pygame
-The slider needs to show its current value
 ![plot](./screenshots/pygame.png)
 
 

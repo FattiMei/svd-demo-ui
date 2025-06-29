@@ -64,21 +64,23 @@ def generate_layout(window_shape: tuple[int, int], image_shape: tuple[int, int],
 
 
 if __name__ == '__main__':
-    args = common.parse_args(version='matplotlib')
+    args = common.parse_args(version='pygame')
 
     filename = 'resources/cameraman.jpg' if args.image is None else args.image
     name, matrix = common.load_image_from_filename(filename, precision=args.precision)
 
     U, Sigma, Vh, explained_variance = common.compute_svd_quantities(matrix)
 
+    k = 3
+    max_singular_values = min(args.max_singular_values, Sigma.size)
+
     print('[INFO]: converting image to pygame Surface')
     original_image_texture = make_grayscale_surface(matrix)
 
     compute_compressed_matrix = lambda k: np.clip(common.truncate_to_k_singular_values(U, Sigma, Vh, k), 0, 255)
 
-    k = 1
     min_k = 1
-    max_k = 30
+    max_k = max_singular_values
     compressed_image = compute_compressed_matrix(k)
     compressed_image_texture = make_grayscale_surface(compressed_image)
 

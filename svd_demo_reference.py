@@ -10,7 +10,6 @@ import common
 
 if __name__ == '__main__':
     args = common.parse_args(version='matplotlib')
-    print(args)
 
     filename = 'resources/cameraman.jpg' if args.image is None else args.image
     name, matrix = common.load_image_from_filename(filename, precision=args.precision)
