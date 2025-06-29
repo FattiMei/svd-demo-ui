@@ -7,11 +7,10 @@ from matplotlib.widgets import Slider
 
 import common
 
-# TODO: add memory footprint
-# TODO: add pooling for improving computation times
 
 if __name__ == '__main__':
     args = common.parse_args(version='matplotlib')
+    print(args)
 
     filename = 'resources/cameraman.jpg' if args.image is None else args.image
     name, matrix = common.load_image_from_filename(filename, precision=args.precision)
@@ -19,6 +18,7 @@ if __name__ == '__main__':
     U, Sigma, Vh, explained_variance = common.compute_svd_quantities(matrix)
 
     k = 3
+    max_singular_values = min(args.max_singular_values, Sigma.size)
 
     # ------------------------ interactive section -----------------------------
     fig = plt.figure(figsize=(10,5))
@@ -50,7 +50,7 @@ if __name__ == '__main__':
         ax=fig.add_subplot(gs[1,:]),
         label='',
         valmin=1,
-        valmax=min(30,len(Sigma)),
+        valmax=max_singular_values,
         valinit=k,
         valstep=1
     )

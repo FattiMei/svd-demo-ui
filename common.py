@@ -20,7 +20,7 @@ def parse_args(version: str):
     group = parser.add_mutually_exclusive_group()
 
     parser.add_argument('--image', help='Image file to be processed')
-    parser.add_argument('--max-singular-values', type=int, help='Maximum number of singular values for compression')
+    parser.add_argument('--max-singular-values', type=int, help='Maximum number of singular values for compression (>2)')
 
     group.add_argument('--fp32', help='Performs the computation in float32', action='store_true')
     group.add_argument('--fp64', help='Performs the computation in float64 (default)', action='store_true')
@@ -33,6 +33,12 @@ def parse_args(version: str):
 
     args = parser.parse_args()
     args.precision = np.float32 if args.fp32 else np.float64
+
+    if args.max_singular_values is not None:
+        if args.max_singular_values < 2:
+            raise ValueError('Select at least 2 singular values for compression')
+    else:
+        args.max_singular_values = 30
 
     return args
 
