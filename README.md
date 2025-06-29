@@ -41,3 +41,12 @@ A minimal C program is also presented as an excuse to use [my smooth-gui library
 
 
 ## Screenshots
+
+### matplotlib
+![plot](./screenshots/matplotlib.png)
+
+### vispy
+![plot](./screenshots/vispy.png)
+
+### pygame
+![plot](./screenshots/pygame.png)
