@@ -14,6 +14,10 @@ def make_grayscale_surface(arr: np.ndarray) -> pygame.surface.Surface:
 
 
 def generate_layout(window_shape: tuple[int, int], image_shape: tuple[int, int], margin_frac: float = 0.05, slider_frac: float = 0.1):
+    # image_shape[0] is the number of rows in the np.ndarray
+    # here we use it as the pixel dimensions of the image, so we need to swap
+    image_shape = (image_shape[1], image_shape[0])
+
     margin = np.floor(margin_frac * np.array(window_shape))
 
     slider_width = window_shape[0] - 2*margin[0]
