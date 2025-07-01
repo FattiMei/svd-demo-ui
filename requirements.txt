@@ -1,6 +1,6 @@
 numpy
 matplotlib
-PIL
+Pillow
 pygame
 vispy
 PyQt5
