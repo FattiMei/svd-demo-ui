@@ -7,6 +7,60 @@ import common
 import pygame
 
 
+class Slider:
+    def __init__(self, bbox: pygame.rect.Rect, initial_state: int, min_value: int, max_value: int, background_color, foreground_color):
+        assert(min_value < max_value)
+        assert(min_value <= initial_state <= max_value)
+
+        self.min_value = min_value
+        self.max_value = max_value
+        self.background_color = background_color
+        self.foreground_color = foreground_color
+
+        self.state = initial_state
+        self.focused = False
+
+        # I want this variable to be quantized
+        self.percent = (self.state - min_value) / (max_value - min_value)
+
+    def update_state(self, event: str, mouse_pos) -> bool:
+        if event == 'released':
+            self.focused = False
+        elif event == 'clicked':
+            if self.bbox.collidepoint(mouse_pos):
+                self.focused = True
+
+        if self.focused:
+            new_state = int(np.round(
+                np.clip(
+                    self.min_value + ((mouse_pos[0] - self.bbox.x) / self.bbox.w) * (self.max_value - self.min_value),
+                    self.min_value,
+                    self.max_value
+                )
+            ))
+
+            self.percent = (self.state - self.min_value) / (self.max_value - self.min_value)
+
+            something_changed = new_state != self.state
+            self.state = new_state
+
+            return something_changed
+
+        return False
+
+    def set_bbox(self, bbox: pygame.rect.Rect):
+        self.bbox = bbox
+
+    def render(self, screen):
+        pygame.draw.rect(screen, color=self.background_color, rect=self.bbox)
+        pygame.draw.rect(screen, color=self.foreground_color, rect=pygame.rect.Rect(
+            self.bbox.x,
+            self.bbox.y,
+            self.percent*self.bbox.w,
+            self.bbox.h
+        ))
+
+
 def make_grayscale_surface(arr: np.ndarray) -> pygame.surface.Surface:
     return pygame.surfarray.make_surface(
         np.stack([arr]*3, axis=-1).swapaxes(0,1)
@@ -83,8 +137,6 @@ if __name__ == '__main__':
 
     compute_compressed_matrix = lambda k: np.clip(common.truncate_to_k_singular_values(U, Sigma, Vh, k), 0, 255)
 
-    min_k = 1
-    max_k = max_singular_values
     compressed_image = compute_compressed_matrix(k)
     compressed_image_texture = make_grayscale_surface(compressed_image)
 
@@ -96,40 +148,38 @@ if __name__ == '__main__':
     clock  = pygame.time.Clock()
 
     running = True
-    state = k
+    slider = Slider(None, initial_state=k, min_value=1, max_value=max_singular_values, background_color=(0,100,100), foreground_color=(0,200,200))
     mouse_state = 'up'
-    percent = (state - min_k) / (max_k - min_k)
 
     while running:
-        clicked = False
-
         window_size = screen.get_size()
         slider_rect, left_bbox_rect, right_bbox_rect = generate_layout(window_size, matrix.shape)
+
+        slider.set_bbox(slider_rect)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
 
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                if mouse_state == 'up':
-                    clicked = True
+                if mouse_state == 'clicked':
+                    mouse_state = 'down'
 
-                mouse_state = 'down'
+                if mouse_state != 'down':
+                    mouse_state = 'clicked'
 
             elif event.type == pygame.MOUSEBUTTONUP:
-                mouse_state = 'up'
+                if mouse_state == 'released':
+                    mouse_state = 'up'
+
+                if mouse_state != 'up':
+                    mouse_state = 'released'
 
         mouse_pos = pygame.mouse.get_pos()
 
-        if clicked:
-            if slider_rect.collidepoint(mouse_pos):
-                percent = (mouse_pos[0] - slider_rect.x) / slider_rect.w
-                new_state = min_k + int(percent * (max_k - min_k))
-
-                if new_state != state:
-                    state = new_state
-                    compressed_image = compute_compressed_matrix(state)
-                    compressed_image_texture = make_grayscale_surface(compressed_image)
+        if slider.update_state(mouse_state, mouse_pos):
+            compressed_image = compute_compressed_matrix(slider.state)
+            compressed_image_texture = make_grayscale_surface(compressed_image)
 
         scaled_image_texture = pygame.transform.smoothscale(original_image_texture, (left_bbox_rect.w, left_bbox_rect.h))
         scaled_compressed_image_texture = pygame.transform.smoothscale(compressed_image_texture, (right_bbox_rect.w, right_bbox_rect.h))
@@ -138,8 +188,7 @@ if __name__ == '__main__':
         screen.blit(scaled_image_texture, (left_bbox_rect.x, left_bbox_rect.y))
         screen.blit(scaled_compressed_image_texture, (right_bbox_rect.x, right_bbox_rect.y))
 
-        pygame.draw.rect(screen, color=(0,100,100), rect=slider_rect)
-        pygame.draw.rect(screen, color=(0,200,200), rect=pygame.rect.Rect(slider_rect.x, slider_rect.y, percent*slider_rect.w, slider_rect.h))
+        slider.render(screen)
 
         pygame.display.flip()
         clock.tick(60)
