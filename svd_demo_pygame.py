@@ -23,6 +23,8 @@ class Slider:
         # I want this variable to be quantized
         self.percent = (self.state - min_value) / (max_value - min_value)
 
+        self.font = pygame.font.Font(size=12)
+
     def update_state(self, event: str, mouse_pos) -> bool:
         if event == 'released':
             self.focused = False
@@ -51,6 +53,8 @@ class Slider:
     def set_bbox(self, bbox: pygame.rect.Rect):
         self.bbox = bbox
 
+        self.font = pygame.font.Font(size=bbox.h)
+
     def render(self, screen):
         pygame.draw.rect(screen, color=self.background_color, rect=self.bbox)
         pygame.draw.rect(screen, color=self.foreground_color, rect=pygame.rect.Rect(
@@ -59,6 +63,17 @@ class Slider:
             self.percent*self.bbox.w,
             self.bbox.h
         ))
+
+        text = f'k = {self.state}'
+        text_bbox = self.font.size(text)
+        text_surface = self.font.render(text, False, (0,0,0))
+        screen.blit(
+            text_surface,
+            (
+                self.bbox.x + (self.bbox.w - text_bbox[0])/2,
+                self.bbox.y + (self.bbox.h - text_bbox[1])/2
+            )
+        )
 
 
 def make_grayscale_surface(arr: np.ndarray) -> pygame.surface.Surface:
@@ -144,7 +159,9 @@ if __name__ == '__main__':
     window_size = (600, 600)
 
     pygame.init()
+    pygame.font.init()
     screen = pygame.display.set_mode(window_size, pygame.DOUBLEBUF | pygame.RESIZABLE)
+    pygame.display.set_caption('svd-demo-pygame')
     clock  = pygame.time.Clock()
 
     running = True
