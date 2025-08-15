@@ -37,21 +37,16 @@ class Controls(QtWidgets.QWidget):
         self.slider_label.setText(f'Singular values ({value:2})')
 
 
-# this class shoudl concerns itself with only the rendering logic
+# this class should implement only the rendering logic
 class CanvasWrapper:
     def __init__(self, matrix: np.ndarray, explained_variance: np.ndarray):
         canvas = scene.SceneCanvas()
-
-        vb1 = scene.widgets.ViewBox(parent=canvas.scene)
-        vb2 = scene.widgets.ViewBox(parent=canvas.scene)
-        vb3 = scene.widgets.ViewBox(parent=canvas.scene)
-        vb = (vb1, vb2, vb3)
-
         grid = canvas.central_widget.add_grid()
-        grid.padding = 0
-        grid.add_widget(vb1, 0, 0)
-        grid.add_widget(vb2, 0, 1)
-        grid.add_widget(vb3, 0, 2)
+
+        vb1 = grid.add_view(0, 0, bgcolor='#c0c0c0')
+        vb2 = grid.add_view(0, 1, bgcolor='#c0c0c0')
+        vb3 = grid.add_view(0, 2, bgcolor='#c0c0c0')
+        vb = (vb1, vb2, vb3)
 
         # panzoom cameras for every viewbox
         for box in vb:
@@ -68,9 +63,16 @@ class CanvasWrapper:
         vb2.camera.flip = (0,1,0)
         vb2.camera.set_range()
 
-        pos = np.stack((np.arange(explained_variance.size), explained_variance)).T
-        variance_line = scene.visuals.LinePlot(pos, parent=vb3.scene)
-        vb3.camera.set_range()
+        # the original implementation wasn't plotting properly due to the first range being too large
+        # is this a bug? Needs a simple replica
+        #
+        #   pos = np.stack((np.arange(explained_variance.size), explained_variance)).T
+        #
+        pos = np.stack((np.linspace(0,1,num=explained_variance.size), explained_variance)).T
+        variance_line = scene.visuals.Line(pos, parent=vb3.scene, color='blue')
+        vb3.camera.set_range(
+            y=(0,1)
+        )
 
         # save only the relevant aspects
         self.canvas = canvas
